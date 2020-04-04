@@ -55,7 +55,7 @@ def start_capture():
             ffmpeg_cmd += "-s 1920x1080 -r 30 -i /dev/video0 -copyinkf -vcodec copy "
 
         # Get all of the video #'s
-        video_nums = [f.replace("RIPZRecord", "").replace(".mp4", "") for f in listdir(video_folder) if isfile(join(video_folder, f))]
+        video_nums = [f.replace("RPICRecord", "").replace(".mp4", "") for f in listdir(video_folder) if isfile(join(video_folder, f))]
         video_nums.sort()
 
         # change start_num to be the first video number not used so that we don't overwrite existing videos
