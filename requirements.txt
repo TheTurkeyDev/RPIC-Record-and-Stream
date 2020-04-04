@@ -1,2 +1,2 @@
 Flask==1.1.1
-gpiozero
+gpiozero==1.5.1
