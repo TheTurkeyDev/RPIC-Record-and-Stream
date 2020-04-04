@@ -40,7 +40,7 @@ def toggle_Capture():
 
 def start_capture():
     global process
-    video_folder = "/opt/camera/videos"
+    video_folder = "/opt/rpic/videos"
     if not exists(video_folder):
         makedirs(video_folder)
 
