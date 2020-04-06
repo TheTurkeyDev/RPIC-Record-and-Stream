@@ -29,6 +29,11 @@ def hello():
     return render_template('index.html', status=status)
 
 
+@app.route("/preview")
+def preview():
+    return render_template('index.html')
+
+
 def toggle_Capture():
     global recording
     recording = not recording
@@ -50,9 +55,9 @@ def start_capture():
 
         if camera_type is "CSI":
             raspivid = subprocess.Popen(shlex.split("raspivid -o - -n -md 1 -fps 30 -t 0"), stdout=subprocess.PIPE)
-            ffmpeg_cmd += "-i - -vcodec copy "
+            ffmpeg_cmd += "-i - "
         elif camera_type is "USB":
-            ffmpeg_cmd += "-s 1920x1080 -r 30 -i /dev/video0 -copyinkf -vcodec copy "
+            ffmpeg_cmd += "-s 1920x1080 -r 30 -i /dev/video0 -copyinkf "
 
         # Get all of the video #'s
         video_nums = [f.replace("RPICRecord", "").replace(".mp4", "") for f in listdir(video_folder) if isfile(join(video_folder, f))]
@@ -63,10 +68,18 @@ def start_capture():
         while str(start_num).zfill(4) in video_nums:
             start_num += 1
 
-        ffmpeg_cmd += "-f segment -segment_time " + str(segment_size) + " -segment_start_number " + str(start_num) + " " + fileName
+        ffmpeg_cmd += "-vcodec copy -f segment -segment_time " + str(segment_size) + " -segment_start_number " + str(start_num) + " " + fileName
         args = shlex.split(ffmpeg_cmd)
     else:
-        args = shlex.split('ffmpeg -ar 44100 -acodec pcm_s16le -f s16le -ac 2 -channel_layout 2.1 -i /dev/zero -f v4l2 -codec:v h264 -framerate 30 -video_size 1920x1080 -i /dev/video0 -c:v copy -c:a libmp3lame -f flv ' + stream_key)
+        ffmpeg_cmd = "ffmpeg -ar 44100 -ac 2 -acodec pcm_s16le -f s16le -i /dev/zero "
+        if camera_type is "CSI":
+            raspivid = subprocess.Popen(shlex.split("raspivid -o - -n -md 1 -fps 30 -t 0 -b 3000000"), stdout=subprocess.PIPE)
+            ffmpeg_cmd += "-f h264 -i - "
+        elif camera_type is "USB":
+            ffmpeg_cmd += "-f v4l2 -codec:v h264 -framerate 30 -video_size 1920x1080 -i /dev/video0 "
+
+        ffmpeg_cmd += '-vcodec copy -c:a libmp3lame -f flv ' + stream_key
+        args = shlex.split(ffmpeg_cmd)
 
     red_led.blink()
 
@@ -86,8 +99,8 @@ def turn_on_ap():
     # Blue LED?
     print("Enabling AP Connection...")
     subprocess.run(['wpa_cli', '-i', 'wlan0', 'disable_network', '0'])
-    subprocess.run(['sudo', 'ip', 'link', 'set', 'dev', 'wlan0', 'down'])
-    subprocess.run(['sudo', 'ip', 'addr', 'add', '192.168.0.1/24', 'dev', 'wlan0'])
+    subprocess.run(['sudo', 'ip', 'link', 'set', 'wlan0', 'down'])
+    subprocess.run(['sudo', 'ip', 'addr', 'add', '192.168.0.1/24', 'wlan0'])
     subprocess.run(['sudo', 'service', 'dhcpcd', 'restart'])
     subprocess.run(['sudo', 'systemctl', 'start', 'dnsmasq.service'])
     subprocess.run(['sudo', 'systemctl', 'start', 'hostapd'])
@@ -98,6 +111,7 @@ def turn_on_wifi():
     print("Enabling WIFI Connection...")
     subprocess.run(['sudo', 'systemctl', 'stop', 'hostapd.service'])
     subprocess.run(['sudo', 'systemctl', 'stop', 'dnsmasq.service'])
+    subprocess.run(['sudo', 'ip', 'link', 'set', 'wlan0', 'up'])
     subprocess.Popen(['wpa_cli', '-i', 'wlan0', 'enable_network', '0'])
 
 

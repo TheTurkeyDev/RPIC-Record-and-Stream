@@ -26,4 +26,7 @@
 11. Setup config
     - TODO:
 12. Setup as service for on startup
-    - TODO:
+    - Run `sudo nano /etc/systemd/system/camera.service`
+    - File contents:
+    - Run `sudo systemctl enable camera`
+    - Run `sudo systemctl start camera`
