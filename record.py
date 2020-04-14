@@ -7,12 +7,13 @@ from gpiozero import Button, LED
 from signal import pause
 from settings import *
 from web_blueprint import api
+from flask import Flask
 
 button = Button(2)
 videoType = Button(3)
 red_led = LED(17)
 
-process = None
+process = []
 
 recording = False
 
@@ -41,7 +42,7 @@ def start_capture():
 
         if camera_type is "CSI":
             raspivid = subprocess.Popen(shlex.split("raspivid -o - -n -md 1 -fps 30 -t 0"), stdout=subprocess.PIPE)
-            ffmpeg_cmd += "-i - "
+            ffmpeg_cmd += "-i - -pix_fmt yuv420p "
         elif camera_type is "USB":
             ffmpeg_cmd += "-s 1920x1080 -r 30 -i /dev/video0 -copyinkf "
 
@@ -62,7 +63,7 @@ def start_capture():
             raspivid = subprocess.Popen(shlex.split("raspivid -o - -n -md 1 -fps 30 -t 0 -b 3000000"), stdout=subprocess.PIPE)
             ffmpeg_cmd += "-f h264 -i - "
         elif camera_type is "USB":
-            ffmpeg_cmd += "-f v4l2 -codec:v h264 -framerate 30 -video_size 1920x1080 -i /dev/video0 "
+            ffmpeg_cmd += "-f v4l2 -codec:v h264 -r 30 -video_size 1920x1080 -i /dev/video0 "
 
         ffmpeg_cmd += '-vcodec copy -c:a libmp3lame -f flv ' + stream_key
         args = shlex.split(ffmpeg_cmd)
@@ -70,15 +71,18 @@ def start_capture():
     red_led.blink()
 
     if raspivid is not None:
-        process = subprocess.Popen(args, stdin=raspivid.stdout)
+        process.append(raspivid)
+        process.append(subprocess.Popen(args, stdin=raspivid.stdout))
     else:
-        process = subprocess.Popen(args)
+        process.append(subprocess.Popen(args))
 
 
 def stop_capture():
+    global process
     red_led.off()
-    if process is not None:
-        process.terminate()
+    for proc in process:
+        proc.terminate()
+    process = []
 
 
 def turn_on_ap():
