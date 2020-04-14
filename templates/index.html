@@ -7,6 +7,13 @@
 <body>
   <h1>Hi!</h1>
   <p>Video Type: {{status}}</p>
+
+  <label for="camType">Camera Type</label>
+  <select id="camType">
+    {% for type in camera_types %}
+    <option value="{{type}}">{{type}}</option>"
+    {% endfor %}
+  </select>
 </body>
 
 </html>

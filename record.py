@@ -5,33 +5,19 @@ import shlex
 from time import sleep, strftime
 from gpiozero import Button, LED
 from signal import pause
-from flask import Flask
-from flask import render_template
 from settings import *
-
-app = Flask(__name__)
+from web_blueprint import api
 
 button = Button(2)
 videoType = Button(3)
-switch = Button(4)
 red_led = LED(17)
 
 process = None
 
 recording = False
 
-
-@app.route("/")
-def hello():
-    status = "Streaming"
-    if videoType.is_pressed:
-        status = "Recording"
-    return render_template('index.html', status=status)
-
-
-@app.route("/preview")
-def preview():
-    return render_template('index.html')
+app = Flask(__name__)
+app.register_blueprint(api)
 
 
 def toggle_Capture():
@@ -116,8 +102,6 @@ def turn_on_wifi():
 
 
 if __name__ == "__main__":
-    switch.when_pressed = turn_on_ap
-    switch.when_released = turn_on_wifi
     button.when_pressed = toggle_Capture
 
     print("Running!")
