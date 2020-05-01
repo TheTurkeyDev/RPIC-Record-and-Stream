@@ -23,10 +23,64 @@
 10. Setup python
     - Run `sudo apt install python3-pip python3-gpiozero`
     - Install the python requirements `pip3 install -r /opt/rpic/requirements.txt`
-11. Setup config
-    - TODO:
+11. Setup for switching to AP Mode
+    - For more information on the process and instructions see: https://www.raspberrypi.org/documentation/configuration/wireless/access-point.md
+    - Run `sudo apt install dnsmasq hostapd`
+    - Run `sudo systemctl stop dnsmasq`
+    - Run `sudo systemctl stop hostapd`
+    - Run `sudo nano /etc/dhcpcd.conf`
+        - At the end of the file add
+            ```
+            interface wlan0
+                static ip_address=192.168.4.1/24
+                nohook wpa_supplicant
+            ```
+    - Run `sudo service dhcpcd restart`
+    - Run `sudo mv /etc/dnsmasq.conf /etc/dnsmasq.conf.orig`
+    - Run `sudo nano /etc/dnsmasq.conf`
+        - Set the file's contents to
+            ```
+            interface=wlan0      # Use the require wireless interface - usually wlan0
+            dhcp-range=192.168.4.2,192.168.4.20,255.255.255.0,24h
+            ```
+    - Run `sudo systemctl start dnsmasq`
+    - Run `sudo nano /etc/hostapd/hostapd.conf`
+        - Set the file's contents to
+            ```
+            interface=wlan0
+            driver=nl80211
+            ssid=<Name your network!>
+            hw_mode=g
+            channel=7
+            wmm_enabled=0
+            macaddr_acl=0
+            auth_algs=1
+            ignore_broadcast_ssid=0
+            wpa=2
+            wpa_passphrase=<Secure your network with a password!>
+            wpa_key_mgmt=WPA-PSK
+            wpa_pairwise=TKIP
+            rsn_pairwise=CCMP
+            ```
+    - Run `sudo nano /etc/default/hostapd`
+    - Find the line with `#DAEMON_CONF` and replace it with `DAEMON_CONF="/etc/hostapd/hostapd.conf"`
+    - Run `sudo systemctl unmask hostapd`
+    - Run `sudo systemctl enable hostapd`
+    - Run `sudo systemctl start hostapd`
 12. Setup as service for on startup
     - Run `sudo nano /etc/systemd/system/camera.service`
     - File contents:
+        ```
+        [Unit]
+        Description=RPIC Record and Stream service
+        After=multi-user.target
+
+        [Service]
+        Type=simple
+        ExecStart=/usr/bin/python3 /opt/rpic/record.py
+
+        [Install]
+        WantedBy=multi-user.target
+        ```
     - Run `sudo systemctl enable camera`
     - Run `sudo systemctl start camera`

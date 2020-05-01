@@ -10,8 +10,7 @@ from web_blueprint import api
 from flask import Flask
 
 button = Button(2)
-videoType = Button(3)
-red_led = LED(17)
+red_led = LED(5)
 
 process = []
 
@@ -36,8 +35,8 @@ def start_capture():
     if not exists(video_folder):
         makedirs(video_folder)
 
-    fileName = video_folder + "/RPICRecord%04d.mp4"
-    if videoType.is_pressed:
+    fileName = video_folder + "/RPICRecord%04d.mkv"
+    if videoType == "Recording":
         ffmpeg_cmd = "ffmpeg -vcodec h264 "
 
         if camera_type is "CSI":
@@ -47,7 +46,7 @@ def start_capture():
             ffmpeg_cmd += "-s 1920x1080 -r 30 -i /dev/video0 -copyinkf "
 
         # Get all of the video #'s
-        video_nums = [f.replace("RPICRecord", "").replace(".mp4", "") for f in listdir(video_folder) if isfile(join(video_folder, f))]
+        video_nums = [f.replace("RPICRecord", "").replace(".mkv", "") for f in listdir(video_folder) if isfile(join(video_folder, f))]
         video_nums.sort()
 
         # change start_num to be the first video number not used so that we don't overwrite existing videos
@@ -90,18 +89,20 @@ def turn_on_ap():
     print("Enabling AP Connection...")
     subprocess.run(['wpa_cli', '-i', 'wlan0', 'disable_network', '0'])
     subprocess.run(['sudo', 'ip', 'link', 'set', 'wlan0', 'down'])
-    subprocess.run(['sudo', 'ip', 'addr', 'add', '192.168.0.1/24', 'wlan0'])
+    subprocess.run(['sudo', 'ip', 'addr', 'add', '192.168.4.1/24', 'wlan0'])
     subprocess.run(['sudo', 'service', 'dhcpcd', 'restart'])
-    subprocess.run(['sudo', 'systemctl', 'start', 'dnsmasq.service'])
+    subprocess.run(['sudo', 'systemctl', 'start', 'dnsmasq'])
     subprocess.run(['sudo', 'systemctl', 'start', 'hostapd'])
 
 
 def turn_on_wifi():
     # Blue LED?
     print("Enabling WIFI Connection...")
-    subprocess.run(['sudo', 'systemctl', 'stop', 'hostapd.service'])
-    subprocess.run(['sudo', 'systemctl', 'stop', 'dnsmasq.service'])
+    subprocess.run(['sudo', 'systemctl', 'stop', 'hostapd'])
+    subprocess.run(['sudo', 'systemctl', 'stop', 'dnsmasq'])
     subprocess.run(['sudo', 'ip', 'link', 'set', 'wlan0', 'up'])
+    #Copy dhcpcd config?
+    #sudo wpa_supplicant -B -i wlan0 -c /etc/wpa_supplicant/wpa_supplicant.conf
     subprocess.Popen(['wpa_cli', '-i', 'wlan0', 'enable_network', '0'])
 
 
