@@ -64,7 +64,8 @@ def start_capture():
         elif camera_type is "USB":
             ffmpeg_cmd += "-f v4l2 -codec:v h264 -r 30 -video_size 1920x1080 -i /dev/video0 "
 
-        ffmpeg_cmd += '-vcodec copy -c:a libmp3lame -f flv ' + stream_key
+        # TODO: Make Ingest Server Configurable
+        ffmpeg_cmd += '-vcodec copy -c:a libmp3lame -f flv rtmp://live-iad05.twitch.tv/app/' + stream_key
         args = shlex.split(ffmpeg_cmd)
 
     red_led.blink()

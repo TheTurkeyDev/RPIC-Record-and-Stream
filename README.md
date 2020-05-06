@@ -24,7 +24,6 @@
     - Run `sudo apt install python3-pip python3-gpiozero`
     - Install the python requirements `pip3 install -r /opt/rpic/requirements.txt`
 11. Setup for switching to AP Mode
-    - For more information on the process and instructions see: https://www.raspberrypi.org/documentation/configuration/wireless/access-point.md
     - Run `sudo apt install dnsmasq hostapd`
     - Run `sudo systemctl stop dnsmasq`
     - Run `sudo systemctl stop hostapd`
@@ -33,7 +32,7 @@
             ```
             interface wlan0
                 static ip_address=192.168.4.1/24
-                nohook wpa_supplicant
+                denyinterfaces wlan0
             ```
     - Run `sudo service dhcpcd restart`
     - Run `sudo mv /etc/dnsmasq.conf /etc/dnsmasq.conf.orig`
@@ -43,7 +42,6 @@
             interface=wlan0      # Use the require wireless interface - usually wlan0
             dhcp-range=192.168.4.2,192.168.4.20,255.255.255.0,24h
             ```
-    - Run `sudo systemctl start dnsmasq`
     - Run `sudo nano /etc/hostapd/hostapd.conf`
         - Set the file's contents to
             ```
@@ -66,7 +64,6 @@
     - Find the line with `#DAEMON_CONF` and replace it with `DAEMON_CONF="/etc/hostapd/hostapd.conf"`
     - Run `sudo systemctl unmask hostapd`
     - Run `sudo systemctl enable hostapd`
-    - Run `sudo systemctl start hostapd`
 12. Setup as service for on startup
     - Run `sudo nano /etc/systemd/system/camera.service`
     - File contents:
