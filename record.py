@@ -10,7 +10,7 @@ from web_blueprint import api
 from flask import Flask
 
 button = Button(2)
-red_led = LED(5)
+red_led = LED(3)
 
 process = []
 
@@ -40,7 +40,7 @@ def start_capture():
         ffmpeg_cmd = "ffmpeg -vcodec h264 "
 
         if camera_type is "CSI":
-            raspivid = subprocess.Popen(shlex.split("raspivid -o - -n -md 1 -fps 30 -t 0"), stdout=subprocess.PIPE)
+            raspivid = subprocess.Popen(shlex.split("raspivid -o - -n -md 4 -fps 30 -t 0"), stdout=subprocess.PIPE)
             ffmpeg_cmd += "-i - -pix_fmt yuv420p "
         elif camera_type is "USB":
             ffmpeg_cmd += "-s 1920x1080 -r 30 -i /dev/video0 -copyinkf "
@@ -59,7 +59,7 @@ def start_capture():
     else:
         ffmpeg_cmd = "ffmpeg -ar 44100 -ac 2 -acodec pcm_s16le -f s16le -i /dev/zero "
         if camera_type is "CSI":
-            raspivid = subprocess.Popen(shlex.split("raspivid -o - -n -md 1 -fps 30 -t 0 -b 3000000"), stdout=subprocess.PIPE)
+            raspivid = subprocess.Popen(shlex.split("raspivid -o - -n -md 4 -fps 30 -t 0 -b 3000000"), stdout=subprocess.PIPE)
             ffmpeg_cmd += "-f h264 -i - "
         elif camera_type is "USB":
             ffmpeg_cmd += "-f v4l2 -codec:v h264 -r 30 -video_size 1920x1080 -i /dev/video0 "
@@ -67,6 +67,9 @@ def start_capture():
         # TODO: Make Ingest Server Configurable
         ffmpeg_cmd += '-vcodec copy -c:a libmp3lame -f flv rtmp://live-iad05.twitch.tv/app/' + stream_key
         args = shlex.split(ffmpeg_cmd)
+
+        # Red : 1.7375      0.5755
+        # Blue: 1.3625      0.7339
 
     red_led.blink()
 
@@ -89,26 +92,20 @@ def turn_on_ap():
     # Blue LED?
     print("Enabling AP Connection...")
     subprocess.run(['wpa_cli', '-i', 'wlan0', 'disable_network', '0'])
-    subprocess.run(['sudo', 'ip', 'link', 'set', 'wlan0', 'down'])
-    subprocess.run(['sudo', 'ip', 'addr', 'add', '192.168.4.1/24', 'wlan0'])
-    subprocess.run(['sudo', 'service', 'dhcpcd', 'restart'])
-    subprocess.run(['sudo', 'systemctl', 'start', 'dnsmasq'])
-    subprocess.run(['sudo', 'systemctl', 'start', 'hostapd'])
+    subprocess.run(['wpa_cli', '-i', 'wlan0', 'enable_network', '1'])
+    subprocess.run(['sudo', 'ip', 'addr', 'add', '192.168.1.1', 'dev', 'wlan0'])
 
 
 def turn_on_wifi():
     # Blue LED?
     print("Enabling WIFI Connection...")
-    subprocess.run(['sudo', 'systemctl', 'stop', 'hostapd'])
-    subprocess.run(['sudo', 'systemctl', 'stop', 'dnsmasq'])
-    subprocess.run(['sudo', 'ip', 'link', 'set', 'wlan0', 'up'])
-    #Copy dhcpcd config?
-    #sudo wpa_supplicant -B -i wlan0 -c /etc/wpa_supplicant/wpa_supplicant.conf
-    subprocess.Popen(['wpa_cli', '-i', 'wlan0', 'enable_network', '0'])
+    subprocess.run(['wpa_cli', '-i', 'wlan0', 'enable_network', '0'])
+    subprocess.run(['wpa_cli', '-i', 'wlan0', 'disable_network', '1'])
 
 
 if __name__ == "__main__":
     button.when_pressed = toggle_Capture
+    red_led.off()
 
     print("Running!")
     app.run(host='0.0.0.0', debug=True, use_reloader=False)

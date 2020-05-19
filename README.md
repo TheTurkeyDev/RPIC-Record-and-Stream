@@ -1,6 +1,27 @@
 # Installation
 1. Flash Rasbian Lite OS onto SD card
 2. Enable SSH and wifi - https://www.raspberrypi.org/documentation/configuration/wireless/headless.md
+    - For the wpa_supplicant.conf set the contents to the below and you won't have to later
+        ```
+        ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+        update_config=1
+        country=US
+
+        network={
+            ssid="<Your Home WiFi Name>"
+            psk="<Your Home WiFi Password>"
+            id_str="wifi"
+        }
+
+        network={
+            ssid="<Name Your AP Connection>"
+            mode=2
+            key_mgmt=WPA-PSK
+            psk="<Your AP Connection Password>"
+            frequency=2437
+            id_str="ap"
+        }
+        ```
 3. Enable SSH over USB (Optional)
     - In `config.txt` append `dtoverlay=dwc2` to the end
     - In `cmdline.txt` append `modules-load=dwc2,g_ether` on the same line after `rootwait` with a single space between the two.
@@ -22,48 +43,33 @@
 9. Install FFmpeg with `sudo apt install ffmpeg`
 10. Setup python
     - Run `sudo apt install python3-pip python3-gpiozero`
-    - Install the python requirements `pip3 install -r /opt/rpic/requirements.txt`
+    - Install the python requirements `sudo pip3 install -r /opt/rpic/requirements.txt`
 11. Setup for switching to AP Mode
-    - Run `sudo apt install dnsmasq hostapd`
-    - Run `sudo systemctl stop dnsmasq`
-    - Run `sudo systemctl stop hostapd`
-    - Run `sudo nano /etc/dhcpcd.conf`
-        - At the end of the file add
-            ```
-            interface wlan0
-                static ip_address=192.168.4.1/24
-                denyinterfaces wlan0
-            ```
-    - Run `sudo service dhcpcd restart`
-    - Run `sudo mv /etc/dnsmasq.conf /etc/dnsmasq.conf.orig`
-    - Run `sudo nano /etc/dnsmasq.conf`
-        - Set the file's contents to
-            ```
-            interface=wlan0      # Use the require wireless interface - usually wlan0
-            dhcp-range=192.168.4.2,192.168.4.20,255.255.255.0,24h
-            ```
-    - Run `sudo nano /etc/hostapd/hostapd.conf`
-        - Set the file's contents to
-            ```
-            interface=wlan0
-            driver=nl80211
-            ssid=<Name your network!>
-            hw_mode=g
-            channel=7
-            wmm_enabled=0
-            macaddr_acl=0
-            auth_algs=1
-            ignore_broadcast_ssid=0
-            wpa=2
-            wpa_passphrase=<Secure your network with a password!>
-            wpa_key_mgmt=WPA-PSK
-            wpa_pairwise=TKIP
-            rsn_pairwise=CCMP
-            ```
-    - Run `sudo nano /etc/default/hostapd`
-    - Find the line with `#DAEMON_CONF` and replace it with `DAEMON_CONF="/etc/hostapd/hostapd.conf"`
-    - Run `sudo systemctl unmask hostapd`
-    - Run `sudo systemctl enable hostapd`
+    - Run `sudo apt install udhcpd`
+    - Run `sudo nano /etc/udhcpd.conf`
+    - Edit `interface eth0` to `interface wlan0`
+    - Run `sudo nano /etc/wpa_supplicant/wpa_supplicant.conf`
+    - File contents:
+        ```
+        ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+        update_config=1
+        country=US
+
+        network={
+            ssid="<Your Home WiFi Name>"
+            psk="<Your Home WiFi Password>"
+            id_str="wifi"
+        }
+
+        network={
+            ssid="<Name Your AP Connection>"
+            mode=2
+            key_mgmt=WPA-PSK
+            psk="<Your AP Connection Password>"
+            frequency=2437
+            id_str="ap"
+        }
+        ```
 12. Setup as service for on startup
     - Run `sudo nano /etc/systemd/system/camera.service`
     - File contents:
