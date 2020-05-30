@@ -45,7 +45,10 @@
     - Run `sudo apt install python3-pip python3-gpiozero`
     - Install the python requirements `sudo pip3 install -r /opt/rpic/requirements.txt`
 11. Setup for switching to AP Mode
-    - Run `sudo apt install udhcpd`
+    - Run `sudo apt install dnsmasq`
+
+
+
     - Run `sudo nano /etc/udhcpd.conf`
     - Edit `interface eth0` to `interface wlan0`
     - Run `sudo nano /etc/wpa_supplicant/wpa_supplicant.conf`

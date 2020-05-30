@@ -1,0 +1,25 @@
+#!/bin/bash
+# Script to setup RPIC
+
+sudo apt update
+sudo mkdir /opt/rpic
+sudo chown pi:pi /opt/rpic
+sudo apt install git ffmpeg python3-pip python3-gpiozero
+git clone https://github.com/Turkey2349/RPIC-Record-and-Stream.git /opt/rpic
+sudo pip3 install -r /opt/rpic/requirements.txt
+
+sudo cat <<EOF >/etc/systemd/system/camera.service
+[Unit]
+Description=RPIC Record and Stream service
+After=multi-user.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /opt/rpic/record.py
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+sudo systemctl enable camera
+sudo systemctl start camera
