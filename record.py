@@ -9,13 +9,15 @@ from settings import *
 from web_blueprint import api
 from flask import Flask
 
-button = Button(2, hold_time=5)
-red_led = LED(3)
+button = Button(3, hold_time=5)
+red_led = LED(2)
 
 process = []
 
 recording = False
 wifi = True
+
+audio = False
 
 app = Flask(__name__)
 app.register_blueprint(api)
@@ -37,11 +39,14 @@ def start_capture():
         makedirs(video_folder)
 
     fileName = video_folder + "/RPICRecord%04d.mkv"
+    ffmpeg_cmd = "ffmpeg "
     if videoType == "Recording":
-        ffmpeg_cmd = "ffmpeg -f alsa -ar 44100 -ac 1 -i hw:2,0 -vcodec h264 "
+        if audio:
+            ffmpeg_cmd += "-f alsa -ar 44100 -ac 1 -i hw:2,0 "
+        ffmpeg_cmd += "-vcodec h264 "
 
         if camera_type is "CSI":
-            raspivid = subprocess.Popen(shlex.split("raspivid -o - -n -md 4 -fps 30 -t 0"), stdout=subprocess.PIPE)
+            raspivid = subprocess.Popen(shlex.split("raspivid -o - -n -md 1 -b 17000000 -fps 30 -t 0"), stdout=subprocess.PIPE)
             ffmpeg_cmd += "-i - -pix_fmt yuv420p "
         elif camera_type is "USB":
             ffmpeg_cmd += "-s 1920x1080 -r 30 -i /dev/video0 -copyinkf "
@@ -55,22 +60,32 @@ def start_capture():
         while str(start_num).zfill(4) in video_nums:
             start_num += 1
 
-        ffmpeg_cmd += "-vcodec copy -codec:a aac -ab 128k -af \"volume=25dB\" -f segment -segment_time " + str(segment_size) + " -segment_start_number " + str(start_num) + " " + fileName
-        args = shlex.split(ffmpeg_cmd)
+        ffmpeg_cmd += "-preset ultrafast -crf 0 -r 30 -vcodec copy "
+        if audio:
+            ffmpeg_cmd += "-codec:a aac -ab 128k -af \"volume=25dB\" "
+        ffmpeg_cmd += "-f segment -segment_time " + str(segment_size) + " -segment_start_number " + str(start_num) + " " + fileName
     else:
-        ffmpeg_cmd = "ffmpeg -f alsa -ar 44100 -ac 1 -i hw:2,0 "
+        if audio:
+            ffmpeg_cmd += "-f alsa -ar 44100 -ac 1 -i hw:2,0 "
+        else:
+            ffmpeg_cmd += "-ar 44100 -ac 2 -acodec pcm_s16le -f s16le -i /dev/zero "
+
         if camera_type is "CSI":
-            raspivid = subprocess.Popen(shlex.split("raspivid -o - -n -md 4 -fps 30 -t 0 -b 3000000"), stdout=subprocess.PIPE)
+            raspivid = subprocess.Popen(shlex.split("raspivid -o - -n -md 1 -fps 30 -t 0 -b 5000000"), stdout=subprocess.PIPE)
             ffmpeg_cmd += "-f h264 -i - "
         elif camera_type is "USB":
             ffmpeg_cmd += "-f v4l2 -codec:v h264 -r 30 -video_size 1920x1080 -i /dev/video0 "
 
-        # TODO: Make Ingest Server Configurable
-        ffmpeg_cmd += '-vcodec copy -codec:a aac -ab 128k -af \"volume=25dB\" -f flv rtmp://live-iad05.twitch.tv/app/' + stream_key
-        args = shlex.split(ffmpeg_cmd)
+        ffmpeg_cmd += "-vcodec copy"
+        if audio:
+             ffmpeg_cmd += "-codec:a aac -ab 128k -af \"volume=25dB\" "
+        else:
+            ffmpeg_cmd += "-c:a libmp3lame "
 
-        # Red : 1.7375      0.5755
-        # Blue: 1.3625      0.7339
+        # TODO: Make Ingest Server Configurable
+        ffmpeg_cmd += '-f flv rtmp://live-iad05.twitch.tv/app/' + stream_key
+    
+    args = shlex.split(ffmpeg_cmd)
 
     red_led.blink()
 
@@ -123,7 +138,7 @@ def turn_on_wifi():
 
 
 if __name__ == "__main__":
-    # button.when_pressed = toggle_Capture
+    button.when_pressed = toggle_Capture
     button.when_held = toggle_wireless
     red_led.off()
 
