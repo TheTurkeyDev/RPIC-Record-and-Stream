@@ -5,26 +5,26 @@
     - Add a file named `wpa_supplicant-wlan0.conf`
     - For the wpa_supplicant-wlan0.conf set the contents to the below and you won't have to later
         ```
-country=US
-ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
-update_config=1
-ap_scan=1
+        country=US
+        ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+        update_config=1
+        ap_scan=1
 
-### AP Mode ###
-network={
-    ssid="<Name Your AP Connection>"
-    mode=2
-    key_mgmt=WPA-PSK
-    psk="<Your AP Connection Password>"
-    frequency=2437
-}
+        ### AP Mode ###
+        network={
+            ssid="<Name Your AP Connection>"
+            mode=2
+            key_mgmt=WPA-PSK
+            psk="<Your AP Connection Password>"
+            frequency=2437
+        }
 
-### WIFI Networks ###
-network={
-    priority=10
-    ssid="<Your Home WiFi Name>"
-    psk="<Your Home WiFi Password>"
-}
+        ### WIFI Networks ###
+        network={
+            priority=10
+            ssid="<Your Home WiFi Name>"
+            psk="<Your Home WiFi Password>"
+        }
         ```
 3. Enable SSH over USB (Optional)
     - In `config.txt` append `dtoverlay=dwc2` to the end
@@ -46,9 +46,10 @@ network={
     - Run `sudo apt install python3-pip python3-gpiozero`
     - Install the python requirements `sudo pip3 install -r /opt/rpic/requirements.txt`
 11. Setup for switching to AP Mode
-    - Run `git clone https://github.com/0unknwn/auto-hotspot.git /opt/auto-hotspot`
+    - Run `sudo mkdir /opt/auto-hotspot`
+    - Run `sudo git clone https://github.com/0unknwn/auto-hotspot.git /opt/auto-hotspot`
     - Run `cd /opt/auto-hotspot`
-    - Run `chmod +x auto-hotspot install.sh`
+    - Run `sudo chmod +x auto-hotspot install.sh`
     - Run `sudo ./install.sh`
 12. Setup as service for on startup
     - Run `sudo nano /etc/systemd/system/camera.service`
