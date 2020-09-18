@@ -2,26 +2,14 @@
 1. Flash Rasbian Lite OS onto SD card
 2. Enable SSH and wifi - https://www.raspberrypi.org/documentation/configuration/wireless/headless.md
     - Add a file named `ssh`
-    - Add a file named `wpa_supplicant-wlan0.conf`
-    - For the wpa_supplicant-wlan0.conf set the contents to the below and you won't have to later
+    - Add a file named `wpa_supplicant.conf`
+    - For the `wpa_supplicant.conf`, set the contents to the below to establish and initial wifi connection to download what we need
         ```
         country=US
         ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
         update_config=1
-        ap_scan=1
 
-        ### AP Mode ###
         network={
-            ssid="<Name Your AP Connection>"
-            mode=2
-            key_mgmt=WPA-PSK
-            psk="<Your AP Connection Password>"
-            frequency=2437
-        }
-
-        ### WIFI Networks ###
-        network={
-            priority=10
             ssid="<Your Home WiFi Name>"
             psk="<Your Home WiFi Password>"
         }
@@ -46,6 +34,28 @@
     - Run `sudo apt install python3-pip python3-gpiozero`
     - Install the python requirements `sudo pip3 install -r /opt/rpic/requirements.txt`
 11. Setup for switching to AP Mode
+    - Run `sudo nano /etc/wpa_supplicant/wpa_supplicant-wlan0.conf`
+        - Set the filecontents to
+        ```
+        country=US                          
+        ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev                           
+        update_config=1                     
+        ap_scan=1
+
+        ### your hotspot ###        # has to be the first network section!
+        network={
+            priority=0              # Lowest priority, so wpa_supplicant prefers the other networks below 
+            ssid="<accesspoint>"    # your access point's name mode=2 key_mgmt=WPA-PSK 
+            psk="<passphrase>"      # your access point's password 
+            frequency=2462
+        }
+
+        ### your network(s) ###    
+        network={
+            ssid="<yourWifi>"
+            psk="<passphrase>"
+        } 
+        ```
     - Run `sudo mkdir /opt/auto-hotspot`
     - Run `sudo git clone https://github.com/0unknwn/auto-hotspot.git /opt/auto-hotspot`
     - Run `cd /opt/auto-hotspot`

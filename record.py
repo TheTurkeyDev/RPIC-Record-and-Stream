@@ -11,6 +11,7 @@ from flask import Flask
 
 button = Button(3, hold_time=5)
 red_led = LED(2)
+Button.was_held = False
 
 process = []
 
@@ -22,12 +23,15 @@ app.register_blueprint(api)
 
 
 def toggle_Capture():
-    global recording
-    recording = not recording
-    if recording:
-        start_capture()
-    else:
-        stop_capture()
+    if not button.was_held:
+        global recording
+        recording = not recording
+        if recording:
+            start_capture()
+        else:
+            stop_capture()
+
+    button.was_held = False
 
 
 def start_capture():
@@ -38,11 +42,12 @@ def start_capture():
 
     fileName = video_folder + "/RPICRecord%04d.mkv"
     if videoType == "Recording":
+        print("Starting Video Recording")
         #ffmpeg_cmd = "ffmpeg -f alsa -ar 44100 -ac 1 -i hw:2,0 -vcodec h264 "
         ffmpeg_cmd = "ffmpeg -vcodec h264 "
 
         if camera_type is "CSI":
-            raspivid = subprocess.Popen(shlex.split("raspivid -o - -n -md 4 -b 17000000 -fps 30 -t 0"), stdout=subprocess.PIPE)
+            raspivid = subprocess.Popen(shlex.split("raspivid -o - -awb greyworld -n -md 4 -b 17000000 -fps 30 -t 0"), stdout=subprocess.PIPE)
             ffmpeg_cmd += "-framerate 30 -i - -pix_fmt yuv420p "
         elif camera_type is "USB":
             ffmpeg_cmd += "-s 1920x1080 -r 30 -i /dev/video0 -copyinkf "
@@ -60,17 +65,18 @@ def start_capture():
         ffmpeg_cmd += "-preset ultrafast -crf 0 -vcodec copy -f segment -segment_time " + str(segment_size) + " -segment_start_number " + str(start_num) + " " + fileName
         args = shlex.split(ffmpeg_cmd)
     else:
+        print("Starting Stream")
         #ffmpeg_cmd = "ffmpeg -f alsa -ar 44100 -ac 1 -i hw:2,0 "
         ffmpeg_cmd = "ffmpeg -ar 44100 -ac 2 -acodec pcm_s16le -f s16le -i /dev/zero "
         if camera_type is "CSI":
-            raspivid = subprocess.Popen(shlex.split("raspivid -o - -n -md 4 -fps 30 -t 0 -b 5000000"), stdout=subprocess.PIPE)
+            raspivid = subprocess.Popen(shlex.split("raspivid -o - -awb greyworld -n -md 4 -fps 30 -t 0 -b 5000000"), stdout=subprocess.PIPE)
             ffmpeg_cmd += "-f h264 -framerate 30 -i - "
         elif camera_type is "USB":
             ffmpeg_cmd += "-f v4l2 -codec:v h264 -r 30 -video_size 1920x1080 -i /dev/video0 "
 
         # TODO: Make Ingest Server Configurable
         #ffmpeg_cmd += '-vcodec copy -codec:a aac -ab 128k -af \"volume=25dB\" -f flv rtmp://live-iad05.twitch.tv/app/' + stream_key
-        ffmpeg_cmd += '-vcodec copy -c:a libmp3lame -f flv rtmp://live-iad05.twitch.tv/app/' + stream_key
+        ffmpeg_cmd += '-vcodec copy -c:a libmp3lame -f flv ' + stream_link
         args = shlex.split(ffmpeg_cmd)
 
         # Red : 1.7375      0.5755
@@ -96,7 +102,9 @@ def stop_capture():
 
 
 def toggle_wireless():
+    button.was_held = True
     global wifi
+    red_led.blink(on_time=0.25, off_time=0.25, n=5)
     wifi = not wifi
     if wifi:
         turn_on_wifi()
@@ -107,19 +115,19 @@ def toggle_wireless():
 def turn_on_ap():
     # Blue LED?
     print("Enabling AP Connection...")
-    subprocess.run(['auto-hotspot', '--start-ap'])
+    subprocess.run(['sudo', 'auto-hotspot', '--start-ap'])
 
 
 
 def turn_on_wifi():
     # Blue LED?
     print("Enabling WIFI Connection...")
-    subprocess.run(['auto-hotspot', '--stop-ap'])
+    subprocess.run(['sudo', 'auto-hotspot', '--stop-ap'])
 
 
 if __name__ == "__main__":
-    button.when_pressed = toggle_Capture
     button.when_held = toggle_wireless
+    button.when_released = toggle_Capture
     red_led.off()
 
     print("Running!")
