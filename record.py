@@ -9,12 +9,12 @@ from settings import *
 from web_blueprint import api
 from flask import Flask
 
-button = Button(3, hold_time=5)
+button = Button(3, hold_time=3)
 red_led = LED(2)
-Button.was_held = False
 
 process = []
 
+was_held = False
 recording = False
 wifi = True
 
@@ -23,15 +23,15 @@ app.register_blueprint(api)
 
 
 def toggle_Capture():
-    if not button.was_held:
-        global recording
+    global recording, was_held
+    if not was_held:
         recording = not recording
         if recording:
             start_capture()
         else:
             stop_capture()
 
-    button.was_held = False
+    was_held = False
 
 
 def start_capture():
@@ -102,8 +102,8 @@ def stop_capture():
 
 
 def toggle_wireless():
-    button.was_held = True
-    global wifi
+    global wifi, was_held
+    was_held = True
     red_led.blink(on_time=0.25, off_time=0.25, n=5)
     wifi = not wifi
     if wifi:

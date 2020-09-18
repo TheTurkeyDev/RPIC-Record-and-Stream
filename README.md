@@ -45,7 +45,9 @@
         ### your hotspot ###        # has to be the first network section!
         network={
             priority=0              # Lowest priority, so wpa_supplicant prefers the other networks below 
-            ssid="<accesspoint>"    # your access point's name mode=2 key_mgmt=WPA-PSK 
+            ssid="<accesspoint>"    # your access point's name 
+            mode=2 
+            key_mgmt=WPA-PSK 
             psk="<passphrase>"      # your access point's password 
             frequency=2462
         }
