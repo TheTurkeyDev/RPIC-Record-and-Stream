@@ -1,0 +1,31 @@
+<html>
+
+<head>
+  <title>Flask Shop</title>
+  <script>
+
+    function newSnapshot() {
+      fetch(window.location.origin + "/newsnapshot", {
+        method: "POST"
+      });
+    }
+
+    function refreshImg() {
+      const image = document.getElementById("snap_image");
+      image.src = window.location.origin + "/snapshot";
+    }
+  </script>
+</head>
+
+<body>
+  <div>
+    <img id="snap_image" src="" width="720" object-fit="cover" />
+  </div>
+  <div>
+    <button id="snap" onclick="newSnapshot()">New Snap</button>
+    <button id="refresh" onclick="refreshImg()">Refresh</button>
+  </div>
+
+</body>
+
+</html>

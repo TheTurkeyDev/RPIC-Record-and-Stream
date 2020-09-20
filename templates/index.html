@@ -2,18 +2,109 @@
 
 <head>
   <title>Flask Shop</title>
+  <script>
+
+    function setConsoleText(msg) {
+      document.getElementById("console").innerHTML = msg;
+    }
+
+    function setNetwork() {
+      setConsoleText("Sending network info");
+      const ssid = document.getElementById("network_ssid").value;
+      if (ssid.trim() === "") {
+        setConsoleText("SSID cannot be empty!");
+        return;
+      }
+      const psk = document.getElementById("network_psk").value;
+      fetch(window.location.origin + "/setnetwork", {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+        body: JSON.stringify({ ssid, psk })
+      }).then(resp => {
+        return resp.json();
+      }).then(json => {
+        setConsoleText(JSON.stringify(json));
+      });
+    }
+
+    function setVideoType() {
+      setConsoleText("Setting video type...");
+      const vidType = document.getElementById("vidType");
+      fetch(window.location.origin + "/setvidtype", {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+        body: JSON.stringify({ type: vidType.options[vidType.selectedIndex].value })
+      }).then(resp => {
+        return resp.json();
+      }).then(json => {
+        setConsoleText(JSON.stringify(json));
+      });
+    }
+
+    function setStreamURL() {
+      setConsoleText("Setting video type...");
+      const url = document.getElementById("streamURL").value;
+      fetch(window.location.origin + "/setstreamurl", {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+        body: JSON.stringify({ url })
+      }).then(resp => {
+        return resp.json();
+      }).then(json => {
+        setConsoleText(JSON.stringify(json));
+      });
+    }
+  </script>
 </head>
 
 <body>
   <h1>Hi!</h1>
-  <p>Video Type: {{status}}</p>
+  <div>
+    <label for="vidType">Video Type</label>
+    <select id="vidType">
+      <option value="Recording" {% if settings.videoType == "Recording" %} selected="Selected" {% endif %}>Recording
+      </option>
+      <option value="Streaming" {% if settings.videoType == "Streaming" %} selected="Selected" {% endif %}>Streaming
+      </option>
+    </select>
+    <button onclick="setVideoType()">Set</button>
+    <span>{{settings.videoType}}</span>
+  </div>
+  <div style="margin-top: 10px;">
+    <label for="streamURL">StreamURL</label>
+    <input id="streamURL" type="text" value="{{settings.stream_link}}" />
+    <button onclick="setStreamURL()">Set</button>
+  </div>
+  <div style="margin-top: 10px;">
+    <label for="camType">Camera Type</label>
+    <select id="camType">
+      {% for type in settings.camera_types_list %}
+      <option value="{{type}}">{{type}}</option>"
+      {% endfor %}
+    </select>
+  </div>
+  <div style="margin-top: 10px;">
+    <div>
+      <label>SSID</label>
+      <input id="network_ssid" type="text" placeholder="Network Name">
+    </div>
+    <div style="margin-top: 3px;">
+      <label>PSK</label>
+      <input id="network_psk" type="password" placeholder="password">
+    </div>
+    <div>
+      <button onclick="setNetwork()">Set</button>
+    </div>
+  </div>
+  <div id="console" style="margin-top: 10px;">
 
-  <label for="camType">Camera Type</label>
-  <select id="camType">
-    {% for type in camera_types %}
-    <option value="{{type}}">{{type}}</option>"
-    {% endfor %}
-  </select>
+  </div>
 </body>
 
 </html>
