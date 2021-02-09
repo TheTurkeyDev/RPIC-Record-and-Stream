@@ -1,0 +1,120 @@
+body {
+    background-color: #212529;
+    color: #D1D1D1;
+    margin: 0px;
+}
+
+.container {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.page-header {
+    width: 100%;
+    background-color: #343A40;
+    padding-top: 15px;
+    padding-bottom: 10px;
+    margin-bottom: 5px;
+}
+
+.page-header>h1 {
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
+.center {
+    text-align: center;
+}
+
+.ml-1 {
+    margin-left: 5px;
+}
+
+.mt-1 {
+    margin-top: 5px;
+}
+
+/** ===== NAV BAR ===== **/
+
+.sidenav {
+    height: 100%;
+    width: 160px;
+    position: fixed;
+    z-index: 1;
+    top: 62px;
+    left: 0;
+    background-color: #343A40;
+    overflow-x: hidden;
+    padding-top: 20px;
+}
+
+.sidenav a {
+    padding: 6px 8px 6px 16px;
+    text-decoration: none;
+    font-size: 25px;
+    color: #818181;
+    display: block;
+}
+
+.sidenav a:hover {
+    color: #f1f1f1;
+}
+
+.main {
+    margin-left: 160px;
+    /* Same as the width of the sidenav */
+    font-size: 28px;
+    /* Increased text to enable scrolling */
+    padding: 0px 10px;
+}
+
+@media screen and (max-height: 450px) {
+    .sidenav {
+        padding-top: 15px;
+    }
+    .sidenav a {
+        font-size: 18px;
+    }
+}
+
+/** ===== INPUT FIELDS =====**/
+
+.input {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.input>.label {
+    width: 100%;
+    text-align: left;
+    font-weight: bold;
+}
+
+.input>.value {
+    padding: 10px 20px;
+    margin: 5px 0;
+    border-radius: 4px;
+    box-sizing: border-box;
+    background-color: #c1c1c1;
+}
+
+.input>.value:focus {
+    background-color: #ffffff;
+}
+
+.input>.value {
+    text-align: left;
+    flex-grow: 1;
+}
+
+button {
+    background-color: #009FBF;
+    color: #ffffff;
+    border-radius: 5px;
+    border: none;
+    min-width: 75px;
+    padding: 10px 15px;
+    margin: 5px 0;
+}

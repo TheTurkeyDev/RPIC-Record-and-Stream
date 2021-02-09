@@ -4,8 +4,7 @@ from os.path import isfile, exists, join
 import shlex
 from time import sleep, strftime
 from gpiozero import Button, LED
-from signal import pause
-import settings as Settings
+from config import getConfig, initConfig
 import stream as Stream
 from web_blueprint import api
 from flask import Flask
@@ -34,10 +33,10 @@ def toggle_Capture():
 
 
 def start_capture():
-    if Settings.videoType == "Recording":
+    if getConfig()["General"]["videoType"] == "Recording":
         Stream.start_record()
     else:
-        Stream.start_stream('flv', Settings.stream_link)
+        Stream.start_stream('flv', getConfig()['Streaming']['streamLink'])
 
     red_led.blink()
 
@@ -74,6 +73,8 @@ def turn_on_wifi():
 if __name__ == "__main__":
     button.when_held = toggle_wireless
     button.when_released = toggle_Capture
+
+    initConfig()
 
     Stream.init()
 

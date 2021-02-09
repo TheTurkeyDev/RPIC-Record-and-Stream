@@ -1,31 +1,35 @@
-<html>
+{% extends "layout.html" %}
+{% block title %}Image Preview{% endblock %}
+{% block head %}
+{{ super() }}
+<script>
 
-<head>
-  <title>Flask Shop</title>
-  <script>
+  function newSnapshot() {
+    fetch(window.location.origin + "/newsnapshot", {
+      method: "POST"
+    });
+  }
 
-    function newSnapshot() {
-      fetch(window.location.origin + "/newsnapshot", {
-        method: "POST"
-      });
-    }
+  function refreshImg() {
+    const image = document.getElementById("snap_image");
+    image.src = window.location.origin + "/snapshot";
+  }
+</script>
+{% endblock %}
+{% block header %}
+Image Preview
+{% endblock %}
+{% block content %}
 
-    function refreshImg() {
-      const image = document.getElementById("snap_image");
-      image.src = window.location.origin + "/snapshot";
-    }
-  </script>
-</head>
-
-<body>
-  <div>
-    <img id="snap_image" src="" width="720" object-fit="cover" />
+<div class="center">
+  <div class="container" style="width: 500px;">
+    <div>
+      <img id="snap_image" src="" width="500px" object-fit="cover" />
+    </div>
+    <div>
+      <button id="snap" onclick="newSnapshot()">New Snap</button>
+      <button id="refresh" onclick="refreshImg()">Refresh</button>
+    </div>
   </div>
-  <div>
-    <button id="snap" onclick="newSnapshot()">New Snap</button>
-    <button id="refresh" onclick="refreshImg()">Refresh</button>
-  </div>
-
-</body>
-
-</html>
+</div>
+{% endblock %}

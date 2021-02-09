@@ -1,0 +1,55 @@
+{% extends "layout.html" %}
+{% block title %}Network{% endblock %}
+{% block head %}
+{{ super() }}
+<script>
+
+  function setConsoleText(msg) {
+    document.getElementById("console").innerHTML = msg;
+  }
+
+  function setNetwork() {
+    //setConsoleText("Sending network info");
+    const ssid = document.getElementById("network_ssid").value;
+    if (ssid.trim() === "") {
+      //setConsoleText("SSID cannot be empty!");
+      return;
+    }
+    const psk = document.getElementById("network_psk").value;
+    fetch(window.location.origin + "/setnetwork", {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+      body: JSON.stringify({ ssid, psk })
+    }).then(resp => {
+      return resp.json();
+    }).then(json => {
+      //setConsoleText(JSON.stringify(json));
+    });
+  }
+</script>
+{% endblock %}
+{% block header %}
+RPiC Control Panel
+{% endblock %}
+{% block content %}
+<div class="center">
+  <div class="container" style="width: 500px;">
+    <h2>
+      Network
+    </h2>
+    <div class="input">
+      <label class="label">SSID</label>
+      <input id="network_ssid" class="value" type="text" placeholder="Network Name" value="{{settings.ssid}}">
+    </div>
+    <div class="input">
+      <label class="label">PSK</label>
+      <input id="network_psk" class="value" type="password" placeholder="password" value="{{settings.password}}">
+    </div>
+    <div class="mt-1">
+      <button onclick="setNetwork()">Set</button>
+    </div>
+  </div>
+</div>
+{% endblock %}

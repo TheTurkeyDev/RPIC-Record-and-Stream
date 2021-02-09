@@ -1,0 +1,24 @@
+<html>
+
+<head>
+    {% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>{% block title %}{% endblock %} - RPiC</title>
+    {% endblock %}
+</head>
+
+<body>
+    <div class="page-header center">
+        <h1>{% block header %}{% endblock %}</h1>
+    </div>
+    <div class="sidenav">
+        <a href="/">Main</a>
+        <a href="/network">Network</a>
+        <a href="/recording">Recording</a>
+        <a href="/streaming">Streaming</a>
+        <a href="/preview">Preview</a>
+    </div>
+    <div id="content">{% block content %}{% endblock %}</div>
+</body>
+
+</html>

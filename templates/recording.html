@@ -1,0 +1,46 @@
+{% extends "layout.html" %}
+{% block title %}Recording{% endblock %}
+{% block head %}
+{{ super() }}
+<script>
+</script>
+{% endblock %}
+{% block header %}
+RPiC Control Panel
+{% endblock %}
+{% block content %}
+<div class="center">
+    <div class="container" style="width: 500px;">
+        <div class="input">
+            <label class="label" for="fps">FPS</label>
+            <input id="fps" class="value" type="number" min="0" value="{{settings.fps}}" />
+        </div>
+        <div class="input">
+            <label class="label" for="bitrate">Bitrate (Mbits/s)</label>
+            <input id="bitrate" class="value" type="number" min="0" max="25"
+                value="{{settings.bitrate|int / 1000000}}" />
+        </div>
+        <div class="input">
+            <label class="label" for="segment_size">Segment Size (sec)</label>
+            <input id="segment_size" class="value" type="number" min="0" value="{{settings.segmentSize}}" />
+        </div>
+        <div class="input">
+            <div class="label">
+                <label for="exposure">Exposure</label>
+            </div>
+            <select id="exposure" class="value">
+                {% for type in defaults.exposureTypes %}
+                <option value="{{type|lower}}" {% if settings.exposure==type|lower %} selected="Selected" {%endif%}>
+                    {{type}}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="input">
+            <label class="label" for="overlay_text">Overlay Text</label>
+            <textarea id="overlay_text" class="value" style="height: 100px;">{{settings.overlayText}}</textarea>
+        </div>
+        <button class="mt-1" onclick="saveSettings()">Save</button>
+    </div>
+</div>
+{% endblock %}
