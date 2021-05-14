@@ -20,16 +20,18 @@ def initConfig():
             'password': 'password123'
         }
         config['Recording'] = {
-            'segmentSize': 1800,
-            'fps': 30,
-            'bitrate': 17000000,
+            'segmentSize': '1800',
+            'fps': '30',
+            'bitrate': '17000000',
             'exposure': 'sports',
+            'audio': 'i2s',
             'overlayText': "TEST\nTest 2"
         }
         config['Streaming'] = {
             'streamLink': 'rtmp://live-iad05.twitch.tv/app/',
-            'fps': 30,
-            'bitrate': 5000000,
+            'fps': '30',
+            'bitrate': '5000000',
+            'audio': 'i2s',
             'exposure': 'sports',
             'overlayText': "TEST\nTest 2"
         }

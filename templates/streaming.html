@@ -3,15 +3,20 @@
 {% block head %}
 {{ super() }}
 <script>
-    function setStreamURL() {
+    function saveSettings() {
         //setConsoleText("Setting video type...");
         const url = document.getElementById("streamURL").value;
-        fetch(window.location.origin + "/setstreamurl", {
+        const fps = document.getElementById("fps").value;
+        const bitrate = document.getElementById("bitrate").value * 1000000;
+        const exposure = document.getElementById("exposure").value;
+        const audio = document.getElementById("audio").value;
+        const overlayText = document.getElementById("overlay_text").value;
+        fetch(window.location.origin + "/saveStreamSettings", {
             headers: {
                 "Content-Type": "application/json",
             },
             method: "POST",
-            body: JSON.stringify({ url })
+            body: JSON.stringify({ url, fps, bitrate, exposure, audio, overlayText })
         }).then(resp => {
             return resp.json();
         }).then(json => {
@@ -25,6 +30,7 @@ RPiC Control Panel
 {% endblock %}
 {% block content %}
 <div class="center">
+    <h1>Streaming Settings</h1>
     <div class="container" style="width: 500px;">
         <div class="input">
             <label class="label" for="streamURL">StreamURL</label>
@@ -52,10 +58,22 @@ RPiC Control Panel
             </select>
         </div>
         <div class="input">
+            <div class="label">
+                <label for="audio">Audio</label>
+            </div>
+            <select id="audio" class="value">
+                {% for type in defaults.audio %}
+                <option value="{{type|lower}}" {% if settings.audio==type|lower %} selected="Selected" {%endif%}>
+                    {{type}}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="input">
             <label class="label" for="overlay_text">Overlay Text</label>
             <textarea id="overlay_text" class="value" style="height: 100px;">{{settings.overlayText}}</textarea>
         </div>
-        <button class="mt-1" onclick="setStreamURL()">Save</button>
+        <button class="mt-1" onclick="saveSettings()">Save</button>
     </div>
 </div>
 {% endblock %}

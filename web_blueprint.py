@@ -7,6 +7,10 @@ import stream as Stream
 api = Blueprint('api', __name__)
 
 
+exposureTypes = ['Auto', 'Night', 'Backlight', 'Spotlight', 'Sports', 'Snow', 'Beach', 'Verylong', 'Fixedfps', 'Antishake', 'Fireworks']
+audio = ['none', 'i2s']
+
+
 @api.route("/")
 def hello():
     return render_template('index.html', settings=getConfig()["General"], cameraTypes=camera_types_list)
@@ -19,12 +23,12 @@ def network():
 
 @api.route("/recording")
 def recording():
-    return render_template('recording.html', settings=getConfig()['Recording'], defaults={'exposureTypes': ['Auto', 'Night', 'Backlight', 'Spotlight', 'Sports', 'Snow', 'Beach', 'Verylong', 'Fixedfps', 'Antishake', 'Fireworks']})
+    return render_template('recording.html', settings=getConfig()['Recording'], defaults={'exposureTypes': exposureTypes, 'audio': audio})
 
 
 @api.route("/streaming")
 def streaming():
-    return render_template('streaming.html', settings=getConfig()['Streaming'], defaults={'exposureTypes': ['Auto', 'Night', 'Backlight', 'Spotlight', 'Sports', 'Snow', 'Beach', 'Verylong', 'Fixedfps', 'Antishake', 'Fireworks']})
+    return render_template('streaming.html', settings=getConfig()['Streaming'], defaults={'exposureTypes': exposureTypes, 'audio': audio})
 
 
 @api.route("/preview")
@@ -55,12 +59,30 @@ def set_video_type():
     return jsonify(success=True, message="Video type set!", type=getConfig()['General']['videoType'])
 
 
-@api.route("/setstreamurl", methods=['POST'])
-def set_stream_url():
+@api.route("/saveStreamSettings", methods=['POST'])
+def save_stream_settings():
     json_data = request.get_json()
     getConfig()['Streaming']['streamLink'] = json_data['url']
+    getConfig()['Streaming']['fps'] = str(json_data['fps'])
+    getConfig()['Streaming']['bitrate'] = str(json_data['bitrate'])
+    getConfig()['Streaming']['audio'] = json_data['audio']
+    getConfig()['Streaming']['exposure'] = json_data['exposure']
+    getConfig()['Streaming']['overlayText'] = json_data['overlayText']
     saveConfig()
-    return jsonify(success=True, message="Stream URL set!")
+    return jsonify(success=True, message="Stream settings saved!")
+
+
+@api.route("/saveRecordingSettings", methods=['POST'])
+def save_recording_settings():
+    json_data = request.get_json()
+    getConfig()['Recording']['segmentSize'] = str(json_data['segmentSize'])
+    getConfig()['Recording']['fps'] = str(json_data['fps'])
+    getConfig()['Recording']['bitrate'] = str(json_data['bitrate'])
+    getConfig()['Recording']['audio'] = json_data['audio']
+    getConfig()['Recording']['exposure'] = json_data['exposure']
+    getConfig()['Recording']['overlayText'] = json_data['overlayText']
+    saveConfig()
+    return jsonify(success=True, message="Stream settings saved!")
 
 
 @api.route("/snapshot", methods=['GET'])

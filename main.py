@@ -33,12 +33,17 @@ def toggle_Capture():
 
 
 def start_capture():
-    if getConfig()["General"]["videoType"] == "Recording":
-        Stream.start_record()
-    else:
-        Stream.start_stream('flv', getConfig()['Streaming']['streamLink'])
+    capture_type = getConfig()["General"]["videoType"]
+    started = False
+    if capture_type == "Recording":
+        started = Stream.start_record()
+    elif capture_type == "Streaming":
+        started = Stream.start_stream('flv', getConfig()['Streaming']['streamLink'])
+    elif capture_type == "RTSP":
+        started = Stream.start_rtsp()
 
-    red_led.blink()
+    if started:
+        red_led.blink()
 
 
 def stop_capture():

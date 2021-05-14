@@ -28,7 +28,7 @@ RPiC Control Panel
   <div class="container" style="width: 500px;">
     <div class="input">
       <div class="label">
-        <label for="vidType">Video Type</label>
+        <label for="vidType">Video Type - Current: {{ settings.videoType }}</label>
       </div>
       <select id="vidType" class="value" onchange="setVideoType()">
         <option value="Recording" {% if settings.videoType=="Recording" %} selected="Selected" {% endif %}>
@@ -37,10 +37,13 @@ RPiC Control Panel
         <option value="Streaming" {% if settings.videoType=="Streaming" %} selected="Selected" {% endif %}>
           Streaming
         </option>
+        <option value="RTSP" {% if settings.videoType=="RTSP" %} selected="Selected" {% endif %}>
+          RTSP
+        </option>
       </select>
     </div>
     <div class="input">
-      <label class="label" for="camType">Camera Type</label>
+      <label class="label" for="camType">Camera Type - Current: {{ settings.cameraType }}</label>
       <select id="camType" class="value">
         {% for type in cameraTypes %}
         <option value="{{type}}">{{type}}</option>"

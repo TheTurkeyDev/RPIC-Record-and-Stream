@@ -21,19 +21,32 @@
 4. Boot up Raspberry Pi
 5. SSH into the Raspberry Pi
     - If setup over usb, it'll be `ssh pi@raspberrypi.local`
-6. Run `sudo apt update`
+6. Run initial update commands 
+    ```
+    sudo apt -y update
+    sudo apt -y upgrade
+    ```
 7. Enable the camera (If using CSI camera port) with `sudo raspi-config` -> `Interfacing Options` -> `Camera`
-7. Setup the project's folder
+8. Setup the project's folder
     - Run `sudo mkdir /opt/rpic`
     - Run `sudo chown pi:pi /opt/rpic`
-8. Add the project code to the Raspberry
+    - Run `sudo mkdir /opt/i2smic`
+    - Run `sudo chown pi:pi /opt/i2smic`
+9. Add the project code to the Raspberry
     - Install git onto the raspberry `sudo apt install git`
     - Run `git clone https://github.com/Turkey2349/RPIC-Record-and-Stream.git /opt/rpic`
-9. Install FFmpeg with `sudo apt install ffmpeg`
-10. Setup python
+10. Install FFmpeg with `sudo apt install ffmpeg`
+11. Setup python
     - Run `sudo apt install python3-pip python3-gpiozero`
     - Install the python requirements `sudo pip3 install -r /opt/rpic/requirements.txt`
-11. Setup for switching to AP Mode
+12. Setup the i2s mic
+    - Run
+    ```
+        sudo pip3 install --upgrade adafruit-python-shell
+        wget https://raw.githubusercontent.com/adafruit/Raspberry-Pi-Installer-Scripts/master/i2smic.py -P /opt/i2smic
+        sudo python3 /opt/i2smic/i2smic.py
+    ```
+12. Setup for switching to AP Mode
     - Run `sudo nano /etc/wpa_supplicant/wpa_supplicant-wlan0.conf`
         - Set the filecontents to
         ```
@@ -63,7 +76,7 @@
     - Run `cd /opt/auto-hotspot`
     - Run `sudo chmod +x auto-hotspot install.sh`
     - Run `sudo ./install.sh`
-12. Setup as service for on startup
+13. Setup as service for on startup
     - Run `sudo nano /etc/systemd/system/camera.service`
     - File contents:
         ```
@@ -73,7 +86,7 @@
 
         [Service]
         Type=simple
-        ExecStart=/usr/bin/python3 /opt/rpic/record.py
+        ExecStart=/usr/bin/python3 /opt/rpic/main.py
 
         [Install]
         WantedBy=multi-user.target
