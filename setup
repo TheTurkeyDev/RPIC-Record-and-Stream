@@ -15,7 +15,7 @@ After=multi-user.target
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/python3 /opt/rpic/record.py
+ExecStart=/usr/bin/python3 /opt/rpic/main.py
 
 [Install]
 WantedBy=multi-user.target

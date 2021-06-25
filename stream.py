@@ -39,7 +39,7 @@ def start_record():
     if settings['audio'] == 'none':
         ffmpeg_cmd += "-ar 44100 -ac 2 -acodec pcm_s16le -f s16le -i /dev/zero "
     elif settings['audio'] == 'i2s':
-        ffmpeg_cmd += "-ar 8000 -acodec pcm_s32le -ac 1 -f alsa -i plughw:0 "
+        ffmpeg_cmd += "-f alsa -ar 44100 -ac 2 -c:a pcm_s32le -i default:CARD=sndrpii2scard "
 
     ffmpeg_cmd += "-vcodec h264 "
 
@@ -94,7 +94,7 @@ def start_stream(out_format, out_link):
     if settings['audio'] == 'none':
         ffmpeg_cmd += "-ar 44100 -ac 2 -acodec pcm_s16le -f s16le -i /dev/zero "
     elif settings['audio'] == 'i2s':
-        ffmpeg_cmd += "-ar 8000 -acodec pcm_s32le -ac 1 -f alsa -i plughw:0 "
+        ffmpeg_cmd += "-f alsa -ar 44100 -ac 2 -c:a pcm_s32le -i default:CARD=sndrpii2scard "
 
     if getConfig()['General']['cameraType'] == "CSI":
         raspivid = subprocess.Popen(shlex.split(
