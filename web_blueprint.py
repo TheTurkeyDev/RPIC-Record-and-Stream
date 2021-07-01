@@ -36,6 +36,11 @@ def preview():
     return render_template('preview.html')
 
 
+@api.route("/vr")
+def vr():
+    return render_template('vr.html')
+
+
 @api.route("/setnetwork", methods=['POST'])
 def setnetwork():
     json_data = request.get_json()

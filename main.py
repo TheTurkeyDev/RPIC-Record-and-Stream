@@ -8,6 +8,7 @@ from config import getConfig, initConfig
 import stream as Stream
 from web_blueprint import api
 from flask import Flask
+from flask_socketio import SocketIO, emit
 
 button = Button(3, hold_time=3)
 red_led = LED(2)
@@ -18,6 +19,7 @@ wifi = True
 
 app = Flask(__name__)
 app.register_blueprint(api)
+socketio = SocketIO(app)
 
 
 def toggle_Capture():
@@ -39,8 +41,8 @@ def start_capture():
         started = Stream.start_record()
     elif capture_type == "Streaming":
         started = Stream.start_stream('flv', getConfig()['Streaming']['streamLink'])
-    elif capture_type == "RTSP":
-        started = Stream.start_rtsp()
+    elif capture_type == "Preview":
+        started = Stream.start_preview()
 
     if started:
         red_led.blink()
@@ -75,6 +77,13 @@ def turn_on_wifi():
     subprocess.run(['sudo', 'auto-hotspot', '--stop-ap'])
 
 
+@socketio.on('preview_image')
+def preview_image():
+    with open('/dev/shm/mjpeg/cam.jpg', 'rb') as f:
+        image_data = f.read()
+    emit('preview_image', {'image_data': image_data})
+
+
 if __name__ == "__main__":
     button.when_held = toggle_wireless
     button.when_released = toggle_Capture
@@ -87,4 +96,4 @@ if __name__ == "__main__":
 
     print("Running!")
 
-    app.run(host='0.0.0.0', debug=True, use_reloader=False)
+    socketio.run(app, host='0.0.0.0', debug=True, use_reloader=False)

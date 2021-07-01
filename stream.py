@@ -130,22 +130,11 @@ def start_stream(out_format, out_link):
     # TODO: Add thread to check that the processes are still alive via proc.poll()
 
 
-def start_rtsp():
+def start_preview():
     global process, is_active
-    settings = getConfig()['Streaming']
-    print("Starting RTSP\n")
+    print("Starting Preview\n")
 
-    # if getConfig()['General']['cameraType'] is "CSI":
-    raspivid = subprocess.Popen(shlex.split(
-        f'raspivid -o - -t 0 -n -md 4 -awb greyworld -ex {settings["exposure"]} -fps {settings["fps"]} -b {settings["bitrate"]} -ae 32,0x00,0x808000,1,100,100 -a "{settings["overlayText"]}"'), stdout=subprocess.PIPE)
-
-    # raspivid -t 0 -fps 30 -o - --nopreview | nc -l 5050
-    args = shlex.split("raspivid -t 0 -fps 30 -o - --nopreview | ffmpeg -framerate 30 -f h264 -i - -preset ultrafast -vcodec copy -tune zerolatency -f mpegts udp://192.168.1.94:1234")
-    if raspivid is not None:
-        process.append(raspivid)
-        process.append(subprocess.Popen(args, stdin=raspivid.stdout))
-    else:
-        process.append(subprocess.Popen(args))
+    process.append(subprocess.Popen(shlex.split(f'raspimjpeg'), stdout=subprocess.PIPE))
 
     is_active = True
     return True
