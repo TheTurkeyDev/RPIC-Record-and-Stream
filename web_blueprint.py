@@ -1,6 +1,6 @@
 
 from flask import Flask, Blueprint, render_template, request, jsonify, send_file
-from config import camera_types_list, getConfig, saveConfig
+from config import camera_types_list, getConfig, saveConfig, getRaspiMjpegConfig
 import subprocess
 import stream as Stream
 
@@ -33,7 +33,7 @@ def streaming():
 
 @api.route("/preview")
 def preview():
-    return render_template('preview.html')
+    return render_template('preview.html', settings=getRaspiMjpegConfig())
 
 
 @api.route("/vr")

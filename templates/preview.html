@@ -6,18 +6,32 @@
 
 </script>
 <script>
+  const times = [];
+
   const socket = io.connect(window.location.origin);
 
+  function start() {
+    socket.emit('start_preview');
+    console.log("here 2");
+  }
+
   socket.on('connect', () => {
-    socket.emit('preview_image');
+    socket.emit('start_preview');
+    console.log("here");
   });
 
-  socket.on('preview_image', (msg) => {
-    var bytes = new Uint8Array(msg.image_data);
+  socket.on('preview_image', async (msg) => {
+    const bytes = new Uint8Array(msg.image_data);
 
     var image = document.getElementById("snap_image");
     image.src = 'data:image/png;base64,' + encode(bytes);
-    socket.emit('preview_image');
+
+    const now = performance.now();
+    while (times.length > 0 && times[0] <= now - 1000) {
+      times.shift();
+    }
+    times.push(now);
+    document.getElementById("fps").innerHTML = times.length;
   });
 
   function encode(input) {
@@ -54,10 +68,22 @@ Image Preview
 {% block content %}
 
 <div class="center">
+  <div class="container" style="width: 900px;">
+    <img id="snap_image" src="" width="900px" object-fit="cover" />
+  </div>
+  <span id="fps"> </span>
+  <h1>Preview/VR Settings</h1>
   <div class="container" style="width: 500px;">
-    <div>
-      <img id="snap_image" src="" width="500px" object-fit="cover" />
+    <div class="input">
+      <label class="label" for="segment_size">Segment Size (sec)</label>
+      <input id="segment_size" class="value" type="number" min="0" value="{{settings.segmentSize}}" />
     </div>
+    <div class="input">
+      <label class="label" for="fps">FPS</label>
+      <input id="fps" class="value" type="number" min="0" value="{{settings.fps}}" />
+    </div>
+    <button class="mt-1" onclick="saveSettings()">Save</button>
+    <button class="mt-1" onclick="start()">?</button>
   </div>
 </div>
 {% endblock %}

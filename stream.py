@@ -133,8 +133,11 @@ def start_stream(out_format, out_link):
 def start_preview():
     global process, is_active
     print("Starting Preview\n")
-
+    subprocess.Popen(shlex.split(f'mkdir -p /dev/shm/mjpeg'), stdout=subprocess.PIPE)
+    subprocess.Popen(shlex.split(f'chown pi:pi /dev/shm/mjpeg'), stdout=subprocess.PIPE)
+    subprocess.Popen(shlex.split(f'chmod 777 /dev/shm/mjpeg'), stdout=subprocess.PIPE)
     process.append(subprocess.Popen(shlex.split(f'raspimjpeg'), stdout=subprocess.PIPE))
+    subprocess.Popen(shlex.split(f'echo \'ru 1\' >/var/www/html/FIFO'), stdout=subprocess.PIPE)
 
     is_active = True
     return True
@@ -146,5 +149,6 @@ def stop():
     global process, is_active
     for proc in process:
         proc.terminate()
+    subprocess.Popen(shlex.split(f'echo \'ru 0\' >/var/www/html/FIFO'), stdout=subprocess.PIPE)
     process = []
     is_active = False

@@ -9,6 +9,8 @@ import stream as Stream
 from web_blueprint import api
 from flask import Flask
 from flask_socketio import SocketIO, emit
+import gzip
+import threading
 
 button = Button(3, hold_time=3)
 red_led = LED(2)
@@ -16,6 +18,7 @@ red_led = LED(2)
 was_held = False
 recording = False
 wifi = True
+thread_running = False
 
 app = Flask(__name__)
 app.register_blueprint(api)
@@ -77,11 +80,24 @@ def turn_on_wifi():
     subprocess.run(['sudo', 'auto-hotspot', '--stop-ap'])
 
 
-@socketio.on('preview_image')
+@socketio.on('start_preview')
 def preview_image():
-    with open('/dev/shm/mjpeg/cam.jpg', 'rb') as f:
-        image_data = f.read()
-    emit('preview_image', {'image_data': image_data})
+    global thread_running
+    app.logger.info("preview")
+    if not thread_running:
+        app.logger.info("start thread")
+        socketio.start_background_task(target=lambda: broadcast_image())
+
+
+def broadcast_image():
+    global thread_running
+    thread_running = True
+    while True:
+        with open('/dev/shm/mjpeg/cam.jpg', 'rb') as f:
+            image_data = f.read()
+
+        socketio.emit('preview_image', {'image_data': image_data}, broadcast=True)
+        socketio.sleep(0.01)
 
 
 if __name__ == "__main__":
@@ -96,4 +112,4 @@ if __name__ == "__main__":
 
     print("Running!")
 
-    socketio.run(app, host='0.0.0.0', debug=True, use_reloader=False)
+    socketio.run(app, debug=True, use_reloader=False)

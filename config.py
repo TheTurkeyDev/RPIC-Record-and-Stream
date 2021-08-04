@@ -42,6 +42,18 @@ def getConfig():
     return config
 
 
+def getRaspiMjpegConfig():
+    keyValMap = {}
+    # with open('/etc/raspimjpeg', 'r') as f:
+    #     content = f.readlines()
+    #     for line in content:
+    #         if len(line) > 0 and not line.startswith('#'):
+    #             parts = line.split()
+    #             if len(parts) == 2:
+    #                 keyValMap[parts[0]] = parts[1]
+    return keyValMap
+
+
 def saveConfig():
     with open('config.ini', 'w') as configfile:
         config.write(configfile)

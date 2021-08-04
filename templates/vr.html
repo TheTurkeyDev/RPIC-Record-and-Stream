@@ -1,152 +1,125 @@
-{% extends "layout.html" %}
-{% block title %}Image Preview{% endblock %}
-{% block head %}
-{{ super() }}
-<style>
-  body {
-    margin: 0px;
-    overflow: hidden;
-  }
+<!DOCTYPE html>
+<html lang="en">
 
-  #webglviewer {
-    bottom: 0;
-    left: 0;
-    position: absolute;
-    right: 0;
-    top: 0;
-    z-index: 100;
-  }
-</style>
-
-<script src="{{ url_for('static', filename='js/three.min.js') }}"></script>
-<script src="{{ url_for('static', filename='js/StereoEffect.js') }}"></script>
-<script src="{{ url_for('static', filename='js/socket.io.min.js') }}"></script>
-
-
-{% endblock %}
-{% block header %}
-Image Preview
-{% endblock %}
-{% block content %}
-
-<div class="center">
-  <div id="webglviewer"></div>
-  <canvas id="tempCanvas"></canvas>
-  <script>
-    const socket = io.connect(window.location.origin);
-
-    socket.on('connect', () => {
-      socket.emit('preview_image');
-    });
-
-    socket.on('preview_image', (msg) => {
-      const bytes = new Uint8Array(msg.image_data);
-
-      const image = new Image();
-      image.src = 'data:image/png;base64,' + encode(bytes);
-      socket.emit('preview_image');
-
-      image.onload = () => {
-        if (context) {
-          context.drawImage(image, 0, 0, canvas.width, canvas.height);
-          texture.needsUpdate = true;
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style type="text/css">
+        body {
+            margin: 0;
+            background-color: #000;
         }
-      }
 
-      // Below code referenced from https://github.com/sitepoint-editors/PiViewer
-
-      //Update
-      //Resize
-      const width = container.offsetWidth;
-      const height = container.offsetHeight;
-
-      camera.aspect = width / height;
-      camera.updateProjectionMatrix();
-
-      renderer.setSize(width, height);
-      effect.setSize(width, height);
-
-      camera.updateProjectionMatrix();
-
-      //Render
-      effect.render(scene, camera);
-    });
-
-    function encode(input) {
-      const keyStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
-      let output = "";
-      let chr1, chr2, chr3, enc1, enc2, enc3, enc4;
-      let i = 0;
-
-      while (i < input.length) {
-        chr1 = input[i++];
-        chr2 = i < input.length ? input[i++] : Number.NaN; // Not sure if the index 
-        chr3 = i < input.length ? input[i++] : Number.NaN; // checks are needed here
-
-        enc1 = chr1 >> 2;
-        enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
-        enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
-        enc4 = chr3 & 63;
-
-        if (isNaN(chr2)) {
-          enc3 = enc4 = 64;
-        } else if (isNaN(chr3)) {
-          enc4 = 64;
+        canvas {
+            display: block;
         }
-        output += keyStr.charAt(enc1) + keyStr.charAt(enc2) +
-          keyStr.charAt(enc3) + keyStr.charAt(enc4);
-      }
-      return output;
-    }
+    </style>
+    <script src="{{ url_for('static', filename='js/three.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/VRButton.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/socket.io.min.js') }}"></script>
+</head>
 
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.001, 700);
-    camera.position.set(0, 15, 0);
-    scene.add(camera);
+<body>
+    <script>
+        function encode(input) {
+            const keyStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+            let output = "";
+            let chr1, chr2, chr3, enc1, enc2, enc3, enc4;
+            let i = 0;
 
-    const renderer = new THREE.WebGLRenderer();
-    const element = renderer.domElement;
-    const container = document.getElementById('webglviewer');
-    container.appendChild(element);
+            while (i < input.length) {
+                chr1 = input[i++];
+                chr2 = i < input.length ? input[i++] : Number.NaN; // Not sure if the index 
+                chr3 = i < input.length ? input[i++] : Number.NaN; // checks are needed here
 
-    const effect = new THREE.StereoEffect(renderer);
+                enc1 = chr1 >> 2;
+                enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
+                enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
+                enc4 = chr3 & 63;
 
-    element.addEventListener('click', fullscreen, false);
+                if (isNaN(chr2)) {
+                    enc3 = enc4 = 64;
+                } else if (isNaN(chr3)) {
+                    enc4 = 64;
+                }
+                output += keyStr.charAt(enc1) + keyStr.charAt(enc2) +
+                    keyStr.charAt(enc3) + keyStr.charAt(enc4);
+            }
+            return output;
+        }
 
-    const canvas = document.getElementById('tempCanvas');
-    canvas.width = 512;
-    canvas.height = 288;
-    canvas.width = nextPowerOf2(canvas.width);
-    canvas.height = nextPowerOf2(canvas.height);
+        const loader = new THREE.TextureLoader();
+        const socket = io.connect(window.location.origin);
 
-    function nextPowerOf2(x) {
-      return Math.pow(2, Math.ceil(Math.log(x) / Math.log(2)));
-    }
+        socket.on('connect', () => {
+            socket.emit('start_preview');
+        });
 
-    const context = canvas.getContext('2d');
-    texture = new THREE.Texture(canvas);
-    texture.context = context;
+        socket.on('preview_image', (msg) => {
+            const bytes = new Uint8Array(msg.image_data);
 
-    const cameraPlane = new THREE.PlaneGeometry(512, 512);
+            const image = new Image();
 
-    let cameraMesh = new THREE.Mesh(cameraPlane, new THREE.MeshBasicMaterial({
-      color: 0xffffff, opacity: 1, map: texture
-    }));
-    cameraMesh.position.z = -200;
+            image.src = 'data:image/png;base64,' + encode(bytes);
 
-    scene.add(cameraMesh);
+            image.onload = () => {
+                loader.load(image.src, texture => {
+                    material.map = texture;
+                    material.needsUpdate = true;
+                });
+            }
+        });
 
-    function fullscreen() {
-      if (container.requestFullscreen) {
-        container.requestFullscreen();
-      } else if (container.msRequestFullscreen) {
-        container.msRequestFullscreen();
-      } else if (container.mozRequestFullScreen) {
-        container.mozRequestFullScreen();
-      } else if (container.webkitRequestFullscreen) {
-        container.webkitRequestFullscreen();
-      }
-    }
-  </script>
-</div>
-{% endblock %}
+        // Make a new scene
+        let scene = new THREE.Scene();
+        // Set background color of the scene to black
+        scene.background = new THREE.Color(0x000000);
+
+        // Make a camera. note that far is set to 100, which is better for realworld sized environments
+        let camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
+        camera.position.set(0, 1.6, 3);
+        scene.add(camera);
+
+        // Image Sprite
+        const material = new THREE.SpriteMaterial();
+        const sprite = new THREE.Sprite(material);
+        sprite.position.set(0, -.20, -.85);
+        sprite.scale.set(1.40, 1, 1);
+        camera.add(sprite);
+
+        // Make a renderer that fills the screen
+        let renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        // Turn on VR support
+        renderer.xr.enabled = true;
+        // Set animation loop
+        renderer.setAnimationLoop(render);
+        // Add canvas to the page
+        document.body.appendChild(renderer.domElement);
+
+        // Add a button to enter/exit vr to the page
+        document.body.appendChild(VRButton.createButton(renderer));
+
+        // For AR instead, import ARButton at the top
+        //    import { ARButton } from 'https://unpkg.com/three/examples/jsm/webxr/ARButton.js';
+        // then create the button
+        //  document.body.appendChild(ARButton.createButton(renderer));
+
+        // Handle browser resize
+        window.addEventListener('resize', onWindowResize, false);
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function render(time) {
+            // Draw everything
+            renderer.render(scene, camera);
+        }
+    </script>
+</body>
+
+</html>
