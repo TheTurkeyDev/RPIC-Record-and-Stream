@@ -1,4 +1,4 @@
-Flask==1.1.1
+Flask==2.3.2
 gpiozero==1.5.1
 flask-socketio==5.1.0
 eventlet==0.31.1
